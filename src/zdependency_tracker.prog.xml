@@ -15,6 +15,24 @@
      <ENTRY>DEPENDENCY_TRACKER</ENTRY>
      <LENGTH>18</LENGTH>
     </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_EXTERN</KEY>
+     <ENTRY>Should not belong to same pkg</ENTRY>
+     <LENGTH>37</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>S_DEVC</KEY>
+     <ENTRY>Package to check</ENTRY>
+     <LENGTH>24</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>S_DP</KEY>
+     <ENTRY>Dependent on ...</ENTRY>
+     <LENGTH>24</LENGTH>
+    </item>
    </TPOOL>
   </asx:values>
  </asx:abap>
