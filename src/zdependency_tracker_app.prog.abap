@@ -86,16 +86,16 @@ class lcl_app implementation.
 
   method display.
     data lx type ref to cx_root.
-    try .
-      data grid type ref to zcl_ua_vat_view_base.
-      grid = zcl_ua_vat_view_base=>create_simple(
+    try.
+      data grid type ref to zcl_dependency_view_base.
+      grid = zcl_dependency_view_base=>create_simple(
         it_content   = it_objs
         iv_title     = 'Cross dependencies'
         iv_technames = abap_true ).
       grid->set_aggregations( 'cnt' ).
       grid->set_sorting( 'obj_type, ^obj_name, dep_package, dep_obj_type, dep_obj_name' ).
       grid->display( ).
-    catch zcx_ua_vat into lx.
+    catch cx_static_check into lx.
       data msg type string.
       msg = lx->get_text( ).
       message msg type 'E' display like 'S'.
