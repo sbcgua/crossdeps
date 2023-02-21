@@ -5,6 +5,13 @@ class ZCL_DEPENDENCY_MODEL definition
 
   public section.
 
+    types ty_devc_range type range of tadir-devclass.
+    types:
+      begin of ty_obj_signature,
+        package type devclass,
+        obj_type type tadir-object,
+        obj_name type tadir-obj_name,
+      end of ty_obj_signature.
     types:
       begin of ty_dependency,
         package type devclass,
@@ -20,7 +27,16 @@ class ZCL_DEPENDENCY_MODEL definition
 
     methods select_by_package
       importing
-        i_package type devclass
+        i_package type tadir-devclass
+      returning
+        value(rt_objs) type tty_dependency.
+
+    methods select_by_object
+      importing
+        i_package  type tadir-devclass
+        i_obj_type type tadir-object
+        i_obj_name type tadir-obj_name
+        ir_package_scope type ty_devc_range optional
       returning
         value(rt_objs) type tty_dependency.
 
@@ -104,6 +120,56 @@ CLASS ZCL_DEPENDENCY_MODEL IMPLEMENTATION.
 
       append obj to ct_objs.
     endloop.
+
+  endmethod.
+
+
+  method select_by_object.
+
+    data lt_queue type standard table of ty_obj_signature.
+    data lt_processed type sorted table of ty_dependency
+          with unique key dep_package dep_obj_type dep_obj_name.
+    data lt_portion type tty_dependency.
+    data ls_obj_sig like line of lt_queue.
+
+    field-symbols <obj> like line of lt_processed.
+
+    ls_obj_sig-package  = i_package.
+    ls_obj_sig-obj_type = i_obj_type.
+    ls_obj_sig-obj_name = i_obj_name.
+    append ls_obj_sig to lt_queue.
+
+    loop at lt_queue into ls_obj_sig.
+      clear lt_portion.
+      collect_dependencies(
+        exporting
+          i_devclass = ls_obj_sig-package
+          i_obj_type = ls_obj_sig-obj_type
+          i_obj_name = ls_obj_sig-obj_name
+        changing
+          ct_objs = lt_portion ).
+      if ir_package_scope is not initial.
+        delete lt_portion where dep_package not in ir_package_scope.
+      endif.
+
+      loop at lt_portion assigning <obj>.
+        read table lt_processed
+          transporting no fields
+          with key
+            dep_package  = <obj>-dep_package
+            dep_obj_type = <obj>-dep_obj_type
+            dep_obj_name = <obj>-dep_obj_name.
+        if sy-subrc <> 0.
+          ls_obj_sig-package  = <obj>-dep_package.
+          ls_obj_sig-obj_type = <obj>-dep_obj_type.
+          ls_obj_sig-obj_name = <obj>-dep_obj_name.
+          append ls_obj_sig to lt_queue.
+          insert <obj> into table lt_processed.
+        endif.
+      endloop.
+    endloop.
+
+    rt_objs = lt_processed.
 
   endmethod.
 

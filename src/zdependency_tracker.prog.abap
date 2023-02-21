@@ -5,9 +5,16 @@ include zdependency_tracker_sel.
 
 start-of-selection.
 
-  data g_app type ref to lcl_app.
-  create object g_app.
-  g_app->run(
-    i_packages       = s_devc[]
-    i_only_deps_from = s_dp[]
-    i_external_only  = p_extern ).
+  if p_m_pkg = abap_true.
+    lcl_app=>new( )->run_for_package(
+      i_packages       = s_devc[]
+      i_only_deps_from = s_dp[]
+      i_external_only  = p_extern ).
+  elseif p_m_deep = abap_true.
+    lcl_app=>new( )->run_for_object(
+      i_obj_type       = p_otype
+      i_obj_name       = p_oname
+      i_only_deps_from = s_dp[] ).
+  else.
+    message 'Mode undefined' type 'S' display like 'E'.
+  endif.

@@ -23,6 +23,32 @@
     </item>
     <item>
      <ID>S</ID>
+     <KEY>P_M_DEEP</KEY>
+     <ENTRY>Full object dependencies</ENTRY>
+     <LENGTH>32</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_M_PKG</KEY>
+     <ENTRY>Cross package dependencies</ENTRY>
+     <LENGTH>34</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_ONAME</KEY>
+     <ENTRY>.</ENTRY>
+     <LENGTH>9</LENGTH>
+     <SPLIT>D</SPLIT>
+    </item>
+    <item>
+     <ID>S</ID>
+     <KEY>P_OTYPE</KEY>
+     <ENTRY>.</ENTRY>
+     <LENGTH>9</LENGTH>
+     <SPLIT>D</SPLIT>
+    </item>
+    <item>
+     <ID>S</ID>
      <KEY>S_DEVC</KEY>
      <ENTRY>Package to check</ENTRY>
      <LENGTH>24</LENGTH>
@@ -30,8 +56,8 @@
     <item>
      <ID>S</ID>
      <KEY>S_DP</KEY>
-     <ENTRY>Dependent on ...</ENTRY>
-     <LENGTH>24</LENGTH>
+     <ENTRY>Dependent on ... (scope)</ENTRY>
+     <LENGTH>32</LENGTH>
     </item>
    </TPOOL>
   </asx:values>

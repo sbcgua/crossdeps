@@ -4,13 +4,21 @@
 class lcl_app definition final.
   public section.
 
-    types ty_devc_range type range of tadir-devclass.
+    class-methods new
+      returning
+        value(ro_instance) type ref to lcl_app.
 
-    methods run
+    methods run_for_package
       importing
-        i_packages type ty_devc_range
+        i_packages type zcl_dependency_model=>ty_devc_range
         i_external_only type abap_bool
-        i_only_deps_from type ty_devc_range optional.
+        i_only_deps_from type zcl_dependency_model=>ty_devc_range.
+
+    methods run_for_object
+      importing
+        i_obj_type type tadir-object
+        i_obj_name type tadir-obj_name
+        i_only_deps_from type zcl_dependency_model=>ty_devc_range optional.
 
   private section.
 
@@ -22,7 +30,11 @@ endclass.
 
 class lcl_app implementation.
 
-  method run.
+  method new.
+    create object ro_instance.
+  endmethod.
+
+  method run_for_package.
 
     data lt_objs_all type zcl_dependency_model=>tty_dependency.
     data lt_objs type zcl_dependency_model=>tty_dependency.
@@ -33,7 +45,7 @@ class lcl_app implementation.
     field-symbols <obj> like line of lt_objs_all.
 
     if i_packages is initial.
-      message 'Enter a package' type 'E' display like 'S'.
+      message 'Enter a package' type 'S' display like 'E'.
       return.
     endif.
 
@@ -62,6 +74,42 @@ class lcl_app implementation.
 
   endmethod.
 
+  method run_for_object.
+
+    data lt_objs_all type zcl_dependency_model=>tty_dependency.
+    data lv_obj_package type tadir-devclass.
+    data lo_model type ref to zcl_dependency_model.
+
+    if i_obj_type is initial or i_obj_name is initial.
+      message 'Enter a object name and type' type 'S' display like 'E'.
+      return.
+    endif.
+
+    select single devclass into lv_obj_package
+      from tadir
+      where pgmid = 'R3TR'
+      and object = i_obj_type
+      and obj_name = i_obj_name.
+
+    if sy-subrc <> 0.
+      message 'Object does not exist' type 'S' display like 'E'.
+      return.
+    endif.
+
+    create object lo_model.
+
+    lt_objs_all = lo_model->select_by_object(
+      i_package  = lv_obj_package
+      i_obj_type = i_obj_type
+      i_obj_name = i_obj_name ).
+
+    if i_only_deps_from is not initial.
+      delete lt_objs_all where dep_package not in i_only_deps_from.
+    endif.
+
+    display( lt_objs_all ).
+
+  endmethod.
 
   method display.
     data lx type ref to cx_root.
