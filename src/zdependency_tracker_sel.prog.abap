@@ -14,6 +14,7 @@ parameters: p_oname type tadir-obj_name modif id md.
 select-options: s_devc for tadir-devclass modif id mp.
 select-options: s_dp for tadir-devclass.
 parameters: p_extern type xfeld modif id mp.
+parameters: p_deep type xfeld modif id md default 'X'.
 
 selection-screen end of block b2.
 

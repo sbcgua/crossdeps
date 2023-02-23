@@ -14,6 +14,7 @@ start-of-selection.
     lcl_app=>new( )->run_for_object(
       i_obj_type       = p_otype
       i_obj_name       = p_oname
+      i_deep           = p_deep
       i_only_deps_from = s_dp[] ).
   else.
     message 'Mode undefined' type 'S' display like 'E'.

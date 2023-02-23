@@ -17,6 +17,12 @@
     </item>
     <item>
      <ID>S</ID>
+     <KEY>P_DEEP</KEY>
+     <ENTRY>Deep (find also deps of deps)</ENTRY>
+     <LENGTH>37</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
      <KEY>P_EXTERN</KEY>
      <ENTRY>Should not belong to same pkg</ENTRY>
      <LENGTH>37</LENGTH>

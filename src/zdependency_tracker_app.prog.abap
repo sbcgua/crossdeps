@@ -18,6 +18,7 @@ class lcl_app definition final.
       importing
         i_obj_type type tadir-object
         i_obj_name type tadir-obj_name
+        i_deep     type abap_bool
         i_only_deps_from type zcl_dependency_model=>ty_devc_range optional.
 
   private section.
@@ -98,10 +99,20 @@ class lcl_app implementation.
 
     create object lo_model.
 
-    lt_objs_all = lo_model->select_by_object(
-      i_package  = lv_obj_package
-      i_obj_type = i_obj_type
-      i_obj_name = i_obj_name ).
+    if i_deep = abap_true.
+      lt_objs_all = lo_model->select_by_object(
+        i_package  = lv_obj_package
+        i_obj_type = i_obj_type
+        i_obj_name = i_obj_name ).
+    else.
+      lo_model->collect_dependencies(
+        exporting
+          i_devclass = lv_obj_package
+          i_obj_type = i_obj_type
+          i_obj_name = i_obj_name
+        changing
+          ct_objs    = lt_objs_all ).
+    endif.
 
     if i_only_deps_from is not initial.
       delete lt_objs_all where dep_package not in i_only_deps_from.
