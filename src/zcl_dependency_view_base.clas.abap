@@ -140,7 +140,7 @@ CLASS ZCL_DEPENDENCY_VIEW_BASE IMPLEMENTATION.
         changing
           t_table      = <tab> ).
     catch cx_salv_msg into lx_alv.
-      lcx_error=>raise( lx_alv->get_text( ) ).
+      zcx_dependency_error=>raise( lx_alv->get_text( ) ).
     endtry.
 
   endmethod.
@@ -244,7 +244,7 @@ CLASS ZCL_DEPENDENCY_VIEW_BASE IMPLEMENTATION.
     elseif lv_ftype = 'h'. " Table, assume string table
       assign iv_fields to <sorts>.
     else.
-      lcx_error=>raise( 'Wrong field list parameter' ).
+      zcx_dependency_error=>raise( 'Wrong field list parameter' ).
     endif.
 
     loop at <sorts> into lv_fld.
@@ -286,7 +286,7 @@ CLASS ZCL_DEPENDENCY_VIEW_BASE IMPLEMENTATION.
           aggregation = if_salv_c_aggregation=>total ).
       endloop.
     catch cx_salv_data_error cx_salv_not_found cx_salv_existing into lx_alv.
-      lcx_error=>raise( lx_alv->get_text( ) ).
+      zcx_dependency_error=>raise( lx_alv->get_text( ) ).
     endtry.
 
     ro_alv_view = me.
@@ -396,7 +396,7 @@ CLASS ZCL_DEPENDENCY_VIEW_BASE IMPLEMENTATION.
           subtotal   = lv_subtotal ).
       endloop.
     catch cx_salv_error into lx_alv.
-      lcx_error=>raise( lx_alv->get_text( ) ).
+      zcx_dependency_error=>raise( lx_alv->get_text( ) ).
     endtry.
 
     ro_alv_view = me.

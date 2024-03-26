@@ -5,40 +5,27 @@ class ZCL_DEPENDENCY_MODEL definition
 
   public section.
 
-    types ty_devc_range type range of tadir-devclass.
-    types:
-      begin of ty_obj_signature,
-        package type devclass,
-        obj_type type tadir-object,
-        obj_name type tadir-obj_name,
-      end of ty_obj_signature.
-    types:
-      begin of ty_dependency,
-        package type devclass,
-        obj_type type tadir-object,
-        obj_name type tadir-obj_name,
-        dep_package type devclass,
-        dep_obj_type type tadir-object,
-        dep_obj_name type tadir-obj_name,
-        cnt type i,
-      end of ty_dependency.
-    types:
-      tty_dependency type standard table of ty_dependency with default key.
-
     methods select_by_package
       importing
         i_package type tadir-devclass
       returning
-        value(rt_objs) type tty_dependency.
+        value(rt_objs) type zif_dependency_types=>tty_dependency.
 
     methods select_by_object
       importing
         i_package  type tadir-devclass
         i_obj_type type tadir-object
         i_obj_name type tadir-obj_name
-        ir_package_scope type ty_devc_range optional
+        ir_package_scope type zif_dependency_types=>ty_devc_range optional
       returning
-        value(rt_objs) type tty_dependency.
+        value(rt_objs) type zif_dependency_types=>tty_dependency.
+
+    methods select_external_usages
+      importing
+        i_package type tadir-devclass
+        ir_package_scope type zif_dependency_types=>ty_devc_range optional
+      returning
+        value(rt_objs) type zif_dependency_types=>tty_dependency.
 
     methods collect_dependencies
       importing
@@ -46,10 +33,22 @@ class ZCL_DEPENDENCY_MODEL definition
         i_obj_type type tadir-object
         i_obj_name type tadir-obj_name
       changing
-        ct_objs type tty_dependency.
+        ct_objs type zif_dependency_types=>tty_dependency.
 
   protected section.
   private section.
+
+    types tty_where_used type standard table of rsfindlst with default key.
+    types ty_seu_obj type standard table of seu_obj with default key.
+
+    methods get_where_used
+      importing
+        iv_obj_type      type euobj-id
+        iv_obj_name      type tadir-obj_name
+        it_scope         type ty_seu_obj optional
+      returning
+        value(rt_findings) type tty_where_used.
+
 ENDCLASS.
 
 
@@ -124,12 +123,56 @@ CLASS ZCL_DEPENDENCY_MODEL IMPLEMENTATION.
   endmethod.
 
 
+  method get_where_used.
+
+    data lt_findstrings type string_table.
+    data lt_scope       like it_scope.
+    data lv_findstring  like line of lt_findstrings.
+
+    if iv_obj_name is initial.
+      return.
+    endif.
+
+    lt_scope = it_scope.
+
+    lv_findstring = iv_obj_name.
+    insert lv_findstring into table lt_findstrings.
+
+    call function 'RS_EU_CROSSREF'
+      exporting
+        i_find_obj_cls           = iv_obj_type
+        no_dialog                = abap_true
+        without_text             = abap_true
+      tables
+        i_findstrings            = lt_findstrings
+        o_founds                 = rt_findings
+        i_scope_object_cls       = lt_scope
+      exceptions
+        not_executed             = 1
+        not_found                = 2
+        illegal_object           = 3
+        no_cross_for_this_object = 4
+        batch                    = 5
+        batchjob_error           = 6
+        wrong_type               = 7
+        object_not_exist         = 8
+        others                   = 9.
+
+    if sy-subrc = 1 or sy-subrc = 2 or lines( rt_findings ) = 0.
+      return.
+    elseif sy-subrc > 2.
+      zcx_dependency_error=>raise( |RS_EU_CROSSREF({ sy-subrc }) for { iv_obj_type } { iv_obj_name }| ).
+    endif.
+
+  endmethod.
+
+
   method select_by_object.
 
-    data lt_queue type standard table of ty_obj_signature.
-    data lt_processed type sorted table of ty_dependency
+    data lt_queue type standard table of zif_dependency_types=>ty_obj_signature.
+    data lt_processed type sorted table of zif_dependency_types=>ty_dependency
           with unique key dep_package dep_obj_type dep_obj_name.
-    data lt_portion type tty_dependency.
+    data lt_portion type zif_dependency_types=>tty_dependency.
     data ls_obj_sig like line of lt_queue.
 
     field-symbols <obj> like line of lt_processed.
@@ -190,6 +233,43 @@ CLASS ZCL_DEPENDENCY_MODEL IMPLEMENTATION.
           i_obj_name = <tadir>-obj_name
         changing
           ct_objs = rt_objs ).
+
+    endloop.
+
+  endmethod.
+
+
+  method select_external_usages.
+
+    " See also CL_FINB_GN_BBI=>GET_CROSSREF
+
+    data lt_tadir type zcl_abapgit_tadir_clone=>ty_tadir_tt.
+    data lt_where_used type tty_where_used.
+    field-symbols <tadir> like line of lt_tadir.
+    field-symbols <dep> like line of rt_objs.
+    field-symbols <use> like line of lt_where_used.
+
+    lt_tadir = zcl_abapgit_tadir_clone=>new( )->read( i_package ).
+
+    " Todo progress
+    " Todo scope devclass
+    " Todo used package
+
+    loop at lt_tadir assigning <tadir> where object <> 'DEVC'.
+
+      lt_where_used = get_where_used(
+        iv_obj_type = |{ <tadir>-object }|
+        iv_obj_name = <tadir>-obj_name ).
+
+      loop at lt_where_used assigning <use>.
+        append initial line to rt_objs assigning <dep>.
+        <dep>-cnt = 1.
+        <dep>-dep_package  = <tadir>-devclass.
+        <dep>-dep_obj_type = <tadir>-object.
+        <dep>-dep_obj_name = <tadir>-obj_name.
+        <dep>-obj_type = <use>-object_cls.
+        <dep>-obj_name = <use>-encl_objec.
+      endloop.
 
     endloop.
 
