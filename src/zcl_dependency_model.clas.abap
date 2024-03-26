@@ -40,6 +40,7 @@ class ZCL_DEPENDENCY_MODEL definition
 
     types tty_where_used type standard table of rsfindlst with default key.
     types ty_seu_obj type standard table of seu_obj with default key.
+    data mt_object_packages type hashed table of zif_dependency_types=>ty_obj_signature with unique key obj_type obj_name.
 
     methods get_where_used
       importing
@@ -48,6 +49,13 @@ class ZCL_DEPENDENCY_MODEL definition
         it_scope         type ty_seu_obj optional
       returning
         value(rt_findings) type tty_where_used.
+
+    methods get_obj_package
+      importing
+        iv_obj_type      type tadir-object
+        iv_obj_name      type tadir-obj_name
+      returning
+        value(rv_package) type tadir-devclass.
 
 ENDCLASS.
 
@@ -119,6 +127,31 @@ CLASS ZCL_DEPENDENCY_MODEL IMPLEMENTATION.
 
       append obj to ct_objs.
     endloop.
+
+  endmethod.
+
+
+  method get_obj_package.
+
+    " see also zcl_abapgit_tadir->get_object_package for checks
+
+    data ls_obj_sig like line of mt_object_packages.
+
+    read table mt_object_packages into ls_obj_sig with key obj_type = iv_obj_type obj_name = iv_obj_name.
+
+    if sy-subrc <> 0.
+      select single devclass from tadir into ls_obj_sig-package
+        where pgmid  = 'R3TR'
+        and object   = iv_obj_type
+        and obj_name = iv_obj_name.
+      if sy-subrc = 0 and ls_obj_sig-package is not initial.
+        ls_obj_sig-obj_type = iv_obj_type.
+        ls_obj_sig-obj_name = iv_obj_name.
+        insert ls_obj_sig into table mt_object_packages.
+      endif.
+    endif.
+
+    rv_package = ls_obj_sig-package.
 
   endmethod.
 
@@ -251,11 +284,19 @@ CLASS ZCL_DEPENDENCY_MODEL IMPLEMENTATION.
 
     lt_tadir = zcl_abapgit_tadir_clone=>new( )->read( i_package ).
 
-    " Todo progress
     " Todo scope devclass
+
     " Todo used package
 
+    data li_progress type ref to zif_abapgit_progress.
+
+    li_progress = zcl_abapgit_progress=>get_instance( lines( lt_tadir ) ).
+
     loop at lt_tadir assigning <tadir> where object <> 'DEVC'.
+
+      li_progress->show(
+        iv_current = sy-tabix
+        iv_text    = |{ <tadir>-object } { <tadir>-obj_name }| ).
 
       lt_where_used = get_where_used(
         iv_obj_type = |{ <tadir>-object }|
@@ -272,6 +313,8 @@ CLASS ZCL_DEPENDENCY_MODEL IMPLEMENTATION.
       endloop.
 
     endloop.
+
+    li_progress->off( ).
 
   endmethod.
 ENDCLASS.
