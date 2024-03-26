@@ -41,6 +41,12 @@
     </item>
     <item>
      <ID>S</ID>
+     <KEY>P_M_WUSE</KEY>
+     <ENTRY>Where used (outside of pkg)</ENTRY>
+     <LENGTH>35</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
      <KEY>P_ONAME</KEY>
      <ENTRY>.</ENTRY>
      <LENGTH>9</LENGTH>
