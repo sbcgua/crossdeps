@@ -153,7 +153,7 @@ class lcl_app implementation.
     data lt_objs type zif_dependency_types=>tty_dependency.
     data lt_packages type table of devclass.
     data lv_package like line of lt_packages.
-    data lo_model type ref to zcl_dependency_model.
+    data lo_model type ref to zcl_dependency_model_wu.
 
     field-symbols <obj> like line of lt_objs_all.
 
