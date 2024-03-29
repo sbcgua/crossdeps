@@ -33,6 +33,13 @@ CLASS zcl_abapgit_tadir_clone DEFINITION FINAL.
         !iv_only_local_objects TYPE abap_bool DEFAULT abap_false
       RETURNING
         VALUE(rt_tadir)        TYPE ty_tadir_tt.
+    METHODS read_single
+      IMPORTING
+        !iv_pgmid       TYPE tadir-pgmid DEFAULT 'R3TR'
+        !iv_object      TYPE tadir-object
+        !iv_obj_name    TYPE tadir-obj_name
+      RETURNING
+        VALUE(rs_tadir) TYPE zif_abapgit_definitions=>ty_tadir.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -265,13 +272,23 @@ CLASS zcl_abapgit_tadir_clone IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD read_single.
+
+    SELECT SINGLE * FROM tadir INTO CORRESPONDING FIELDS OF rs_tadir
+      WHERE pgmid = iv_pgmid
+      AND object = iv_object
+      AND obj_name = iv_obj_name.                         "#EC CI_SUBRC
+    CLEAR rs_tadir-korrnum.
+
+  ENDMETHOD.
+
 ENDCLASS.
 
 **********************************************************************
-* CONTRIB: ZCL_ABAPGIT_PROGRESS
+* CONTRIB: zcl_abapgit_progress_clone
 **********************************************************************
 
-INTERFACE zif_abapgit_progress.
+INTERFACE zif_abapgit_progress_clone.
 
   METHODS show
     IMPORTING
@@ -284,25 +301,25 @@ INTERFACE zif_abapgit_progress.
 ENDINTERFACE.
 
   " this class is a reduced version of
-  " https://github.com/abapGit/abapGit/main/src/ui/progress/zcl_abapgit_progress.clas.abap
+  " https://github.com/abapGit/abapGit/main/src/ui/progress/zcl_abapgit_progress_clone.clas.abap
 
-CLASS zcl_abapgit_progress DEFINITION
+CLASS zcl_abapgit_progress_clone DEFINITION
   FINAL
   CREATE PROTECTED .
 
   PUBLIC SECTION.
 
-    INTERFACES zif_abapgit_progress .
+    INTERFACES zif_abapgit_progress_clone .
 
     CLASS-METHODS get_instance
       IMPORTING
         !iv_total          TYPE i
       RETURNING
-        VALUE(ri_progress) TYPE REF TO zif_abapgit_progress .
+        VALUE(ri_progress) TYPE REF TO zif_abapgit_progress_clone .
   PROTECTED SECTION.
 
     DATA mv_total TYPE i .
-    CLASS-DATA gi_progress TYPE REF TO zif_abapgit_progress .
+    CLASS-DATA gi_progress TYPE REF TO zif_abapgit_progress_clone .
 
     METHODS calc_pct
       IMPORTING
@@ -317,7 +334,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_ABAPGIT_PROGRESS IMPLEMENTATION.
+CLASS zcl_abapgit_progress_clone IMPLEMENTATION.
   METHOD calc_pct.
 
     DATA: lv_f TYPE f.
@@ -338,7 +355,7 @@ CLASS ZCL_ABAPGIT_PROGRESS IMPLEMENTATION.
 * max one progress indicator at a time is supported
 
     IF gi_progress IS INITIAL.
-      CREATE OBJECT gi_progress TYPE zcl_abapgit_progress.
+      CREATE OBJECT gi_progress TYPE zcl_abapgit_progress_clone.
     ENDIF.
 
     gi_progress->set_total( iv_total ).
@@ -347,14 +364,14 @@ CLASS ZCL_ABAPGIT_PROGRESS IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD zif_abapgit_progress~off.
+  METHOD zif_abapgit_progress_clone~off.
 
     " Clear the status bar
     CALL FUNCTION 'SAPGUI_PROGRESS_INDICATOR'.
 
   ENDMETHOD.
 
-  METHOD zif_abapgit_progress~set_total.
+  METHOD zif_abapgit_progress_clone~set_total.
 
     mv_total = iv_total.
 
@@ -363,7 +380,7 @@ CLASS ZCL_ABAPGIT_PROGRESS IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD zif_abapgit_progress~show.
+  METHOD zif_abapgit_progress_clone~show.
 
     DATA: lv_pct  TYPE i,
           lv_time TYPE t.

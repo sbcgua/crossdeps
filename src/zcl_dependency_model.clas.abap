@@ -40,6 +40,12 @@ class ZCL_DEPENDENCY_MODEL definition
 
     types tty_where_used type standard table of rsfindlst with default key.
     types ty_seu_obj type standard table of seu_obj with default key.
+    types:
+      begin of ty_dev_object,
+        type type seu_stype,
+        tadir type trobjtype,
+      end of ty_dev_object.
+
     data mt_object_packages type hashed table of zif_dependency_types=>ty_obj_signature with unique key obj_type obj_name.
 
     methods get_where_used
@@ -47,6 +53,7 @@ class ZCL_DEPENDENCY_MODEL definition
         iv_obj_type      type euobj-id
         iv_obj_name      type tadir-obj_name
         it_scope         type ty_seu_obj optional
+        ir_package_scope type zif_dependency_types=>ty_devc_range optional
       returning
         value(rt_findings) type tty_where_used.
 
@@ -180,6 +187,7 @@ CLASS ZCL_DEPENDENCY_MODEL IMPLEMENTATION.
         i_findstrings            = lt_findstrings
         o_founds                 = rt_findings
         i_scope_object_cls       = lt_scope
+        i_scope_devclass         = ir_package_scope
       exceptions
         not_executed             = 1
         not_found                = 2
@@ -278,43 +286,79 @@ CLASS ZCL_DEPENDENCY_MODEL IMPLEMENTATION.
 
     data lt_tadir type zcl_abapgit_tadir_clone=>ty_tadir_tt.
     data lt_where_used type tty_where_used.
+    data lt_where_used_portion type tty_where_used.
+    data lt_package_scope like ir_package_scope.
+    data lt_dev_obj_cache type hashed table of ty_dev_object with unique key type.
+
     field-symbols <tadir> like line of lt_tadir.
     field-symbols <dep> like line of rt_objs.
     field-symbols <use> like line of lt_where_used.
+    field-symbols <pkg> like line of lt_package_scope.
+    field-symbols <devobj> like line of lt_dev_obj_cache.
 
-    lt_tadir = zcl_abapgit_tadir_clone=>new( )->read( i_package ).
+    data lo_tadir type ref to zcl_abapgit_tadir_clone.
 
-    " Todo scope devclass
+    lo_tadir = zcl_abapgit_tadir_clone=>new( ).
+    lt_tadir = lo_tadir->read( i_package ).
 
-    " Todo used package
+    " Define package scope
+    lt_package_scope = ir_package_scope.
+    loop at lt_tadir assigning <tadir> where object = 'DEVC'.
+      append initial line to lt_package_scope assigning <pkg>.
+      <pkg>-sign   = 'E'.
+      <pkg>-option = 'EQ'.
+      <pkg>-low    = <tadir>-obj_name.
+    endloop.
 
-    data li_progress type ref to zif_abapgit_progress.
-
-    li_progress = zcl_abapgit_progress=>get_instance( lines( lt_tadir ) ).
-
+    " Collect where used
+    data li_progress type ref to zif_abapgit_progress_clone.
+    li_progress = zcl_abapgit_progress_clone=>get_instance( lines( lt_tadir ) ).
     loop at lt_tadir assigning <tadir> where object <> 'DEVC'.
 
       li_progress->show(
         iv_current = sy-tabix
         iv_text    = |{ <tadir>-object } { <tadir>-obj_name }| ).
 
-      lt_where_used = get_where_used(
+      lt_where_used_portion = get_where_used(
         iv_obj_type = |{ <tadir>-object }|
-        iv_obj_name = <tadir>-obj_name ).
+        iv_obj_name = <tadir>-obj_name
+        ir_package_scope = lt_package_scope ).
 
-      loop at lt_where_used assigning <use>.
-        append initial line to rt_objs assigning <dep>.
-        <dep>-cnt = 1.
-        <dep>-dep_package  = <tadir>-devclass.
-        <dep>-dep_obj_type = <tadir>-object.
-        <dep>-dep_obj_name = <tadir>-obj_name.
-        <dep>-obj_type = <use>-object_cls.
-        <dep>-obj_name = <use>-encl_objec.
-      endloop.
+      append lines of lt_where_used_portion to lt_where_used.
 
     endloop.
-
     li_progress->off( ).
+
+    select type tadir from euobjedit into table lt_dev_obj_cache.
+
+    " Convert
+    loop at lt_where_used assigning <use>.
+
+      append initial line to rt_objs assigning <dep>.
+      <dep>-cnt = 1.
+      <dep>-dep_package  = <tadir>-devclass.
+      <dep>-dep_obj_type = <tadir>-object.
+      <dep>-dep_obj_name = <tadir>-obj_name.
+      <dep>-dep_used_obj = <use>-used_obj.
+      <dep>-dep_used_cls = <use>-used_cls.
+
+      <dep>-obj_cls = <use>-object_cls.
+
+      read table lt_dev_obj_cache assigning <devobj> with key type = <use>-object_cls.
+      if sy-subrc = 0 and <devobj>-tadir is not initial.
+        <dep>-obj_type = <devobj>-tadir.
+      endif.
+
+      <dep>-obj_name = <use>-encl_objec.
+      if <dep>-obj_name is initial.
+        <dep>-obj_name = <use>-object.
+      endif.
+
+      <dep>-package = lo_tadir->read_single(
+        iv_object   = <dep>-obj_type
+        iv_obj_name = <dep>-obj_name )-devclass.
+
+    endloop.
 
   endmethod.
 ENDCLASS.

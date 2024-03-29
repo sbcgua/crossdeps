@@ -13,9 +13,12 @@ interface zif_dependency_types
       package type devclass,
       obj_type type tadir-object,
       obj_name type tadir-obj_name,
+      obj_cls  type rsfindlst-object_cls,
       dep_package type devclass,
       dep_obj_type type tadir-object,
       dep_obj_name type tadir-obj_name,
+      dep_used_cls type rsfindlst-used_cls,
+      dep_used_obj type rsfindlst-used_obj,
       cnt type i,
     end of ty_dependency.
   types:

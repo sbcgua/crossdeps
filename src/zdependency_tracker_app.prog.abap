@@ -30,7 +30,8 @@ class lcl_app definition final.
 
     methods display
       importing
-        it_objs type zif_dependency_types=>tty_dependency.
+        it_objs type zif_dependency_types=>tty_dependency
+        iv_hide_fields type string optional.
 
 endclass.
 
@@ -75,7 +76,9 @@ class lcl_app implementation.
       endloop.
     endif.
 
-    display( lt_objs_all ).
+    display(
+      it_objs        = lt_objs_all
+      iv_hide_fields = 'obj_cls, dep_used_cls, dep_used_obj' ).
 
   endmethod.
 
@@ -120,7 +123,9 @@ class lcl_app implementation.
       delete lt_objs_all where dep_package not in i_only_deps_from.
     endif.
 
-    display( lt_objs_all ).
+    display(
+      it_objs        = lt_objs_all
+      iv_hide_fields = 'obj_cls, dep_used_cls, dep_used_obj' ).
 
   endmethod.
 
@@ -130,9 +135,10 @@ class lcl_app implementation.
     try.
       data grid type ref to zcl_dependency_view_base.
       grid = zcl_dependency_view_base=>create_simple(
-        it_content   = it_objs
-        iv_title     = 'Cross dependencies'
-        iv_technames = abap_true ).
+        it_content     = it_objs
+        iv_hide_fields = iv_hide_fields
+        iv_title       = 'Cross dependencies'
+        iv_technames   = abap_true ).
       grid->set_aggregations( 'cnt' ).
       grid->set_sorting( 'obj_type, ^obj_name, dep_package, dep_obj_type, dep_obj_name' ).
       grid->display( ).
@@ -160,13 +166,11 @@ class lcl_app implementation.
     create object lo_model.
 
     loop at lt_packages into lv_package.
-      lt_objs = lo_model->select_external_usages( i_package = lv_package ).
+      lt_objs = lo_model->select_external_usages(
+        i_package = lv_package
+        ir_package_scope = i_only_deps_from ).
       append lines of lt_objs to lt_objs_all.
     endloop.
-
-    if i_only_deps_from is not initial.
-      delete lt_objs_all where dep_package not in i_only_deps_from.
-    endif.
 
     display( lt_objs_all ).
 
