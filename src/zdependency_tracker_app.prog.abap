@@ -141,7 +141,22 @@ class lcl_app implementation.
         iv_technames   = abap_true ).
       grid->set_aggregations( 'cnt' ).
       grid->set_sorting( 'obj_type, ^obj_name, dep_package, dep_obj_type, dep_obj_name' ).
+
+      grid->set_f4(
+        iv_column = 'obj_cls'
+        iv_ref    = 'euobjv-type' ).
+      grid->set_f4(
+        iv_column = 'dep_used_cls'
+        iv_ref    = 'euobjv-type' ).
+      grid->set_f4(
+        iv_column = 'obj_type'
+        iv_ref    = 'tadir-object' ).
+      grid->set_f4(
+        iv_column = 'dep_obj_type'
+        iv_ref    = 'tadir-object' ).
+
       grid->display( ).
+
     catch cx_static_check into lx.
       message lx type 'E' display like 'S'.
     endtry.

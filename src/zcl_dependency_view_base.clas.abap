@@ -44,6 +44,14 @@ class ZCL_DEPENDENCY_VIEW_BASE definition
         value(ro_alv_view) type ref to zcl_dependency_view_base
       raising
         cx_static_check .
+    methods set_f4
+      importing
+        !iv_column type lvc_fname
+        !iv_ref type string
+      returning
+        value(ro_alv_view) type ref to zcl_dependency_view_base
+      raising
+        cx_static_check .
 
     " events
     methods handle_double_click
@@ -370,6 +378,30 @@ CLASS ZCL_DEPENDENCY_VIEW_BASE IMPLEMENTATION.
     lo_display = mo_alv->get_display_settings( ).
     lo_display->set_striped_pattern( abap_true ).
     lo_display->set_list_header( iv_title ).
+
+  endmethod.
+
+
+  method set_f4.
+
+    data ls_ddic type salv_s_ddic_reference.
+    data lo_column type ref to cl_salv_column_table.
+
+    split iv_ref at '-' into ls_ddic-table ls_ddic-field.
+    if ls_ddic-table is initial or ls_ddic-field is initial.
+      return.
+    endif.
+
+    ls_ddic-table = to_upper( ls_ddic-table ).
+    ls_ddic-field = to_upper( ls_ddic-field ).
+
+    try.
+      lo_column ?= mo_alv->get_columns( )->get_column( |{ to_upper( iv_column ) }| ).
+      lo_column->set_ddic_reference( ls_ddic ).
+      lo_column->set_f4( if_salv_c_bool_sap=>true ).
+      catch cx_salv_not_found.
+        return.
+    endtry.
 
   endmethod.
 
