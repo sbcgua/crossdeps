@@ -183,11 +183,24 @@ CLASS ZCL_DEPENDENCY_MODEL_WU IMPLEMENTATION.
         endif.
       endif.
 
+      if <dep>-package is initial.
+        <dep>-package = '????'.
+
+        if <dep>-obj_type = 'PROG'. " Maybe it is an include
+          select single subc into <dep>-obj_prog_type from trdir where name = <dep>-obj_name.
+          if <dep>-obj_prog_type is not initial and <dep>-obj_prog_type <> '1'. " Exec. prog
+            <dep>-obj_type = 'INCL'.
+          endif.
+        endif.
+
+      endif.
 
     endloop.
 
-    " include detection
     " some includes are FUGR and some are ENHO ...
+    " include detection TRDIR, D010INC ???
+    " How to find FUGR by main program name ???
+    " how to find connection with ENHO ?
 
   endmethod.
 

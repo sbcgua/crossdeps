@@ -12,6 +12,7 @@ interface zif_dependency_types
     begin of ty_dependency,
       package type devclass,
       obj_type type tadir-object,
+      obj_prog_type type trdir-subc,
       obj_name type tadir-obj_name,
       obj_cls  type rsfindlst-object_cls,
       dep_package type devclass,

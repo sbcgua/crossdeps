@@ -78,7 +78,7 @@ class lcl_app implementation.
 
     display(
       it_objs        = lt_objs_all
-      iv_hide_fields = 'obj_cls, dep_used_cls, dep_used_obj' ).
+      iv_hide_fields = 'obj_cls, dep_used_cls, dep_used_obj, obj_prog_type' ).
 
   endmethod.
 
@@ -125,7 +125,7 @@ class lcl_app implementation.
 
     display(
       it_objs        = lt_objs_all
-      iv_hide_fields = 'obj_cls, dep_used_cls, dep_used_obj' ).
+      iv_hide_fields = 'obj_cls, dep_used_cls, dep_used_obj, obj_prog_type' ).
 
   endmethod.
 
@@ -154,6 +154,9 @@ class lcl_app implementation.
       grid->set_f4(
         iv_column = 'dep_obj_type'
         iv_ref    = 'tadir-object' ).
+      grid->set_f4(
+        iv_column = 'obj_prog_type'
+        iv_ref    = 'trdir-subc' ).
 
       grid->display( ).
 
