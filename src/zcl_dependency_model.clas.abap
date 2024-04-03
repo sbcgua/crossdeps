@@ -5,40 +5,20 @@ class ZCL_DEPENDENCY_MODEL definition
 
   public section.
 
-    types ty_devc_range type range of tadir-devclass.
-    types:
-      begin of ty_obj_signature,
-        package type devclass,
-        obj_type type tadir-object,
-        obj_name type tadir-obj_name,
-      end of ty_obj_signature.
-    types:
-      begin of ty_dependency,
-        package type devclass,
-        obj_type type tadir-object,
-        obj_name type tadir-obj_name,
-        dep_package type devclass,
-        dep_obj_type type tadir-object,
-        dep_obj_name type tadir-obj_name,
-        cnt type i,
-      end of ty_dependency.
-    types:
-      tty_dependency type standard table of ty_dependency with default key.
-
     methods select_by_package
       importing
         i_package type tadir-devclass
       returning
-        value(rt_objs) type tty_dependency.
+        value(rt_objs) type zif_dependency_types=>tty_dependency.
 
     methods select_by_object
       importing
         i_package  type tadir-devclass
         i_obj_type type tadir-object
         i_obj_name type tadir-obj_name
-        ir_package_scope type ty_devc_range optional
+        ir_package_scope type zif_dependency_types=>ty_devc_range optional
       returning
-        value(rt_objs) type tty_dependency.
+        value(rt_objs) type zif_dependency_types=>tty_dependency.
 
     methods collect_dependencies
       importing
@@ -46,10 +26,12 @@ class ZCL_DEPENDENCY_MODEL definition
         i_obj_type type tadir-object
         i_obj_name type tadir-obj_name
       changing
-        ct_objs type tty_dependency.
+        ct_objs type zif_dependency_types=>tty_dependency.
 
   protected section.
   private section.
+
+
 ENDCLASS.
 
 
@@ -126,10 +108,10 @@ CLASS ZCL_DEPENDENCY_MODEL IMPLEMENTATION.
 
   method select_by_object.
 
-    data lt_queue type standard table of ty_obj_signature.
-    data lt_processed type sorted table of ty_dependency
+    data lt_queue type standard table of zif_dependency_types=>ty_obj_signature.
+    data lt_processed type sorted table of zif_dependency_types=>ty_dependency
           with unique key dep_package dep_obj_type dep_obj_name.
-    data lt_portion type tty_dependency.
+    data lt_portion type zif_dependency_types=>tty_dependency.
     data ls_obj_sig like line of lt_queue.
 
     field-symbols <obj> like line of lt_processed.
