@@ -44,7 +44,7 @@ CLASS zcl_abapgit_tadir_clone DEFINITION FINAL.
         !iv_object      TYPE tadir-object
         !iv_obj_name    TYPE tadir-obj_name
       RETURNING
-        VALUE(rs_tadir) TYPE zif_abapgit_definitions=>ty_tadir.
+        VALUE(rs_tadir) TYPE ty_tadir.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
