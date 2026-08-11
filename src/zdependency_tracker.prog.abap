@@ -1,5 +1,9 @@
 report zdependency_tracker.
 
+" SPDX-License-Identifier: MIT
+" SPDX-FileCopyrightText: 2020, Alexander Tsybulsky
+" Project: Crossdeps - https://github.com/sbcgua/crossdeps
+
 include zdependency_tracker_app.
 include zdependency_tracker_sel.
 

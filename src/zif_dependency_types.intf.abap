@@ -1,6 +1,14 @@
 interface zif_dependency_types
   public.
 
+  " SPDX-License-Identifier: MIT
+  " SPDX-FileCopyrightText: 2020, Alexander Tsybulsky
+  " Project: Crossdeps - https://github.com/sbcgua/crossdeps
+
+  constants gc_project type string value 'crossdeps'.
+  constants gc_origin  type string value 'https://github.com/sbcgua/crossdeps'.
+  constants gc_license type string value 'MIT'.
+
   types ty_devc_range type range of tadir-devclass.
   types:
     begin of ty_obj_signature,
